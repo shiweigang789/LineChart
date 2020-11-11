@@ -53,7 +53,6 @@ class MainActivity : AppCompatActivity() {
         move_select_chart.show()
     }
 
-
     var days = 90
 
     private fun getAxisValuesX(): List<AxisValue>? {
