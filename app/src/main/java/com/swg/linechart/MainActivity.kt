@@ -17,7 +17,7 @@ class MainActivity : AppCompatActivity() {
 
         seek_bar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
-                Log.d("SeekBar", p1.toString())
+                Log.d("HorizontalProgressBar", p1.toString())
 //                hpb.setProgress(p1.toDouble())
                 hpb1.setCurrentProgress(p1.toFloat())
             }

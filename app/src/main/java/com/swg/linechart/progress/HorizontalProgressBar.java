@@ -2,20 +2,22 @@ package com.swg.linechart.progress;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.os.Build;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
+
+import com.swg.linechart.R;
 
 import java.text.DecimalFormat;
 
@@ -27,10 +29,103 @@ import java.text.DecimalFormat;
 
 public class HorizontalProgressBar extends View {
 
-    private Paint bgPaint;
+    /**
+     * 进度条背景颜色
+     */
+    private int bgColor = 0xFFe1e5e8;
+    /**
+     * 进度条颜色
+     */
+    private int progressColor = 0xFFf66b12;
+    /**
+     * 进度条画笔的宽度
+     */
+    private int progressWidth;
+
+    /**
+     * 进度数字背景颜色1
+     */
+    private int tipRectColor1;
+
+    /**
+     * 进度数字背景颜色1
+     */
+    private int tipRectColor2;
+
+    /**
+     * 进度数字颜色1
+     */
+    private int textColor1;
+
+    /**
+     * 进度数字颜色2
+     */
+    private int textColor2;
+
+    /**
+     * 百分比文字字体大小
+     */
+    private int textSize;
+
+
+    /**
+     * 百分比提示框画笔的宽度
+     */
+    private int tipPaintWidth;
+
+    /**
+     * 百分比提示框的高度
+     */
+    private int tipRectHeight;
+
+    /**
+     * 百分比提示框的宽度
+     */
+    private int tipRectWidth;
+
+    /**
+     * 三角形的高
+     */
+    private int triangleHeight;
+
+    /**
+     * 是否显示动画
+     */
+    private boolean mShowAnim;
+
+    /**
+     * 圆角矩形的圆角半径
+     */
+    private int roundRectRadius;
+
+    /**
+     * 动画执行时间
+     */
+    private int duration = 1000;
+
+    /**
+     * 动画延时启动时间
+     */
+    private int startDelay = 500;
+
+    /**
+     * 进度条距离提示框的高度
+     */
+    private int progressMarginTop;
+
+    /**
+     * 进度条画笔
+     */
     private Paint progressPaint;
 
+    /**
+     * 提示框背景画笔
+     */
     private Paint tipPaint;
+
+    /**
+     * 文字画笔
+     */
     private Paint textPaint;
 
     private int mWidth;
@@ -51,135 +146,75 @@ public class HorizontalProgressBar extends View {
      */
     private ValueAnimator progressAnimator;
 
-    /**
-     * 动画执行时间
-     */
-    private int duration = 1000;
-    /**
-     * 动画延时启动时间
-     */
-    private int startDelay = 500;
-
-    /**
-     * 进度条画笔的宽度
-     */
-    private int progressPaintWidth;
-
-    /**
-     * 百分比提示框画笔的宽度
-     */
-    private int tipPaintWidth;
-
-    /**
-     * 百分比提示框的高度
-     */
-    private int tipHeight;
-
-    /**
-     * 百分比提示框的宽度
-     */
-    private int tipWidth;
 
     /**
      * 画三角形的path
      */
     private Path path = new Path();
-    /**
-     * 三角形的高
-     */
-    private int triangleHeight;
-    /**
-     * 进度条距离提示框的高度
-     */
-    private int progressMarginTop;
-
-    /**
-     * 进度移动的距离
-     */
-    private float moveDis;
 
     private Rect textRect = new Rect();
-    private String textString = "0";
-    /**
-     * 百分比文字字体大小
-     */
-    private int textPaintSize;
 
-    /**
-     * 进度条背景颜色
-     */
-    private int bgColor = 0xFFe1e5e8;
-    /**
-     * 进度条颜色
-     */
-    private int progressColor = 0xFFf66b12;
+    private String textString = "0";
+
 
     /**
      * 绘制提示框的矩形
      */
     private RectF rectF = new RectF();
-    private RectF bgRectF = new RectF();
-    private RectF progressRectF = new RectF();
-
-    /**
-     * 圆角矩形的圆角半径
-     */
-    private int roundRectRadius;
 
     /**
      * 进度监听回调
      */
     private ProgressListener progressListener;
 
-    public HorizontalProgressBar(Context context) {
-        super(context);
-    }
+    private String TAG = "HorizontalProgressBar";
 
     public HorizontalProgressBar(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        init();
+        init(context, attrs);
         initPaint();
     }
 
     /**
      * 初始化画笔宽度及view大小
      */
-    private void init() {
-        progressPaintWidth = dp2px(6);
-        tipHeight = dp2px(17);
-        tipWidth = dp2px(40);
-        tipPaintWidth = dp2px(1);
-        triangleHeight = dp2px(5);
-        roundRectRadius = dp2px(9);
-
-        textPaintSize = sp2px(10);
-        progressMarginTop = dp2px(8);
-
+    private void init(Context context, AttributeSet attrs) {
+        TypedArray attributes = getContext().obtainStyledAttributes(attrs, R.styleable.HorizontalProgressBar);
+        progressColor = attributes.getColor(R.styleable.HorizontalProgressBar_progress_color, Color.parseColor("#2A5BFF"));
+        bgColor = attributes.getColor(R.styleable.HorizontalProgressBar_progress_color, Color.WHITE);
+        progressWidth = attributes.getDimensionPixelSize(R.styleable.HorizontalProgressBar_progress_width, dp2px(6));
+        tipRectColor1 = attributes.getColor(R.styleable.HorizontalProgressBar_text_bg_color1, Color.parseColor("#DEDEDE"));
+        tipRectColor2 = attributes.getColor(R.styleable.HorizontalProgressBar_text_bg_color2, Color.parseColor("#2A5BFF"));
+        textColor1 = attributes.getColor(R.styleable.HorizontalProgressBar_text_color1, Color.parseColor("#333333"));
+        textColor2 = attributes.getColor(R.styleable.HorizontalProgressBar_text_color2, Color.parseColor("#FFFFFF"));
+        textSize = attributes.getDimensionPixelSize(R.styleable.HorizontalProgressBar_progress_width, sp2px(10));
+        tipRectWidth = attributes.getDimensionPixelSize(R.styleable.HorizontalProgressBar_text_bg_width, dp2px(45));
+        tipRectHeight = attributes.getDimensionPixelSize(R.styleable.HorizontalProgressBar_text_bg_height, dp2px(20));
+        tipPaintWidth = attributes.getDimensionPixelSize(R.styleable.HorizontalProgressBar_text_paint_width, sp2px(2));
+        triangleHeight = attributes.getDimensionPixelSize(R.styleable.HorizontalProgressBar_triangle_height, dp2px(5));
+        roundRectRadius = attributes.getDimensionPixelSize(R.styleable.HorizontalProgressBar_triangle_height, dp2px(10));
+        mShowAnim = attributes.getBoolean(R.styleable.HorizontalProgressBar_progress_anim, true);
+        duration = attributes.getInt(R.styleable.HorizontalProgressBar_progress_anim_duration, 1000);
+        attributes.recycle();
+        progressMarginTop = dp2px(5);
         //view真实的高度
-        mViewHeight = tipHeight + tipPaintWidth + triangleHeight + progressPaintWidth + progressMarginTop;
+        mViewHeight = tipRectHeight + triangleHeight + progressWidth + progressMarginTop;
     }
 
     /**
      * 初始化画笔
      */
     private void initPaint() {
-        bgPaint = getPaint(progressPaintWidth, bgColor, Paint.Style.STROKE);
-        progressPaint = getPaint(progressPaintWidth, progressColor, Paint.Style.STROKE);
-        tipPaint = getPaint(tipPaintWidth, progressColor, Paint.Style.FILL);
+        progressPaint = getPaint(progressWidth, progressColor, Paint.Style.STROKE);
+        tipPaint = getPaint(tipRectWidth, progressColor, Paint.Style.FILL);
 
-        initTextPaint();
-    }
-
-    /**
-     * 初始化文字画笔
-     */
-    private void initTextPaint() {
         textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        textPaint.setTextSize(textPaintSize);
+        textPaint.setTextSize(textSize);
         textPaint.setColor(Color.WHITE);
         textPaint.setTextAlign(Paint.Align.CENTER);
         textPaint.setAntiAlias(true);
     }
+
 
     /**
      * 统一处理paint
@@ -253,84 +288,65 @@ public class HorizontalProgressBar extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
-        canvas.drawLine(getPaddingLeft() + progressPaintWidth / 2,
-                tipHeight + progressMarginTop,
-                mWidth - getPaddingEnd() - progressPaintWidth / 2,
-                tipHeight + progressMarginTop,
-                bgPaint);
+        progressPaint.setColor(bgColor);
+        int startY = tipRectHeight + triangleHeight + progressMarginTop;
+        canvas.drawLine(getPaddingLeft() + progressWidth / 2,
+                startY,
+                mWidth - getPaddingEnd() - progressWidth / 2,
+                startY,
+                progressPaint);
         if (currentProgress > 0) {
-            canvas.drawLine(getPaddingLeft() + progressPaintWidth / 2,
-                    tipHeight + progressMarginTop,
-                    currentProgress - getPaddingEnd() - progressPaintWidth / 2,
-                    tipHeight + progressMarginTop,
+            progressPaint.setColor(progressColor);
+            canvas.drawLine(getPaddingLeft() + progressWidth / 2,
+                    startY,
+                    currentProgress - getPaddingEnd() - progressWidth / 2,
+                    startY,
                     progressPaint);
         }
-
-        drawTipView(canvas);
-        drawText(canvas, textString);
-
+        drawRoundRectAndText(canvas);
     }
-
-    /**
-     * 绘制进度上边提示百分比的view
-     *
-     * @param canvas
-     */
-    private void drawTipView(Canvas canvas) {
-        drawRoundRect(canvas);
-        drawTriangle(canvas);
-    }
-
 
     /**
      * 绘制圆角矩形
      *
      * @param canvas
      */
-    private void drawRoundRect(Canvas canvas) {
-        rectF.set(mWidth - tipWidth, 0, mWidth, tipHeight);
+    private void drawRoundRectAndText(Canvas canvas) {
+        if (currentProgress >= mWidth) {
+            tipPaint.setColor(tipRectColor2);
+            textPaint.setColor(textColor2);
+        } else {
+            tipPaint.setColor(tipRectColor1);
+            textPaint.setColor(textColor1);
+        }
+        rectF.set(mWidth - tipRectWidth, 0, mWidth, tipRectHeight);
         canvas.drawRoundRect(rectF, roundRectRadius, roundRectRadius, tipPaint);
-    }
 
-    /**
-     * 绘制三角形
-     *
-     * @param canvas
-     */
-    private void drawTriangle(Canvas canvas) {
-        path.moveTo(mWidth - tipWidth / 2 - triangleHeight, tipHeight);
-        path.lineTo(mWidth - tipWidth / 2, tipHeight + triangleHeight);
-        path.lineTo(mWidth - tipWidth / 2 + triangleHeight, tipHeight);
+        path.moveTo(mWidth - tipRectWidth / 2 - triangleHeight, tipRectHeight);
+        path.lineTo(mWidth - tipRectWidth / 2, tipRectHeight + triangleHeight);
+        path.lineTo(mWidth - tipRectWidth / 2 + triangleHeight, tipRectHeight);
         canvas.drawPath(path, tipPaint);
         path.reset();
 
-    }
-
-    /**
-     * 绘制文字
-     *
-     * @param canvas 画布
-     */
-    private void drawText(Canvas canvas, String text) {
         Rect textBounds = new Rect();
-        textPaint.getTextBounds(text, 0, text.length(), textBounds);
+        textPaint.getTextBounds(textString, 0, textString.length(), textBounds);
         int textWidth = textBounds.right - textBounds.left;
         int textHeight = textBounds.bottom - textBounds.top;
-        textRect.left = mWidth - tipWidth / 2 - textWidth / 2;
-        textRect.top = tipHeight / 2 - textHeight / 2;
-        textRect.right = mWidth - tipWidth / 2 + textWidth / 2;
-        textRect.bottom = tipHeight / 2 + textHeight / 2;
+        textRect.left = mWidth - tipRectWidth / 2 - textWidth / 2;
+        textRect.top = tipRectHeight / 2 - textHeight / 2;
+        textRect.right = mWidth - tipRectWidth / 2 + textWidth / 2;
+        textRect.bottom = tipRectHeight / 2 + textHeight / 2;
         Paint.FontMetricsInt fontMetrics = textPaint.getFontMetricsInt();
         int baseline = (textRect.bottom + textRect.top - fontMetrics.bottom - fontMetrics.top) / 2;
         //文字绘制到整个布局的中心位置
-        canvas.drawText(text + "%", textRect.centerX(), baseline, textPaint);
+        canvas.drawText(textString + "%", textRect.centerX(), baseline, textPaint);
     }
 
     /**
      * 进度移动动画  通过插值的方式改变移动的距离
      */
     private void initAnimation() {
+        Log.d(TAG, mProgress + "");
         progressAnimator = ValueAnimator.ofFloat(0, mProgress);
         progressAnimator.setDuration(duration);
         progressAnimator.setStartDelay(startDelay);
@@ -340,27 +356,18 @@ public class HorizontalProgressBar extends View {
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 float value = (float) valueAnimator.getAnimatedValue();
                 //进度数值只显示整数，我们自己的需求，可以忽略
-                textString = formatNum(format2Int(value));
+                textString = formatNumTwo(value);
                 //把当前百分比进度转化成view宽度对应的比例
                 currentProgress = value * mWidth / 100;
                 //进度回调方法
                 if (progressListener != null) {
                     progressListener.currentProgressListener(value);
                 }
-                //移动百分比提示框，只有当前进度到提示框中间位置之后开始移动，
-                //当进度框移动到最右边的时候停止移动，但是进度条还可以继续移动
-                //moveDis是tip框移动的距离
-                if (currentProgress >= (tipWidth / 2) &&
-                        currentProgress <= (mWidth - tipWidth / 2)) {
-                    moveDis = currentProgress - tipWidth / 2;
-                }
                 invalidate();
-                setCurrentProgress(value);
             }
         });
         progressAnimator.start();
     }
-
 
     /**
      * 设置进度条带动画效果
@@ -368,70 +375,14 @@ public class HorizontalProgressBar extends View {
      * @param progress
      * @return
      */
-    public HorizontalProgressBar setProgressWithAnimation(float progress) {
+    public void setCurrentProgress(float progress) {
         mProgress = progress;
-        initAnimation();
-        return this;
-    }
-
-    /**
-     * 实时显示进度
-     *
-     * @param progress
-     * @return
-     */
-    public HorizontalProgressBar setCurrentProgress(float progress) {
-        mProgress = progress;
-        currentProgress = progress * mWidth / 100;
-        textString = formatNum(format2Int(progress));
-
-        //移动百分比提示框，只有当前进度到提示框中间位置之后开始移动，
-        //当进度框移动到最右边的时候停止移动，但是进度条还可以继续移动
-        //moveDis是tip框移动的距离
-        if (currentProgress >= (tipWidth / 2) &&
-                currentProgress <= (mWidth - tipWidth / 2)) {
-            moveDis = currentProgress - tipWidth / 2;
-        }
-
-        invalidate();
-        return this;
-    }
-
-    /**
-     * 开启动画
-     */
-    public void startProgressAnimation() {
-        if (progressAnimator != null &&
-                !progressAnimator.isRunning() &&
-                !progressAnimator.isStarted())
-            progressAnimator.start();
-    }
-
-    /**
-     * 暂停动画
-     */
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void pauseProgressAnimation() {
-        if (progressAnimator != null) {
-            progressAnimator.pause();
-        }
-    }
-
-    /**
-     * 恢复动画
-     */
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void resumeProgressAnimation() {
-        if (progressAnimator != null)
-            progressAnimator.resume();
-    }
-
-    /**
-     * 停止动画
-     */
-    public void stopProgressAnimation() {
-        if (progressAnimator != null) {
-            progressAnimator.end();
+        if (mShowAnim) {
+            initAnimation();
+        } else {
+            currentProgress = progress * mWidth / 100;
+            textString = formatNumTwo(progress);
+            invalidate();
         }
     }
 
@@ -494,10 +445,6 @@ public class HorizontalProgressBar extends View {
     protected int sp2px(int spVal) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
                 spVal, getResources().getDisplayMetrics());
-
     }
 
-    public static int format2Int(double i) {
-        return (int) i;
-    }
 }
