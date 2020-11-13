@@ -20,6 +20,18 @@
         </attr>
     </declare-styleable>
 
+    <declare-styleable name="StepProgressView">
+        <attr name="progress_circle_width" format="reference|dimension" />
+        <attr name="progress_circle_normal_color" format="reference|color" />
+        <attr name="progress_circle_select_color" format="reference|color" />
+        <attr name="progress_circle_radius" format="reference|dimension" />
+        <attr name="progress_text_describe_height" format="reference|dimension" />
+        <attr name="progress_text_describe_size" format="reference|dimension" />
+        <attr name="progress_text_describe_color" format="reference|color" />
+        <attr name="progress_text_date_color" format="reference|dimension" />
+        <attr name="progress_margin_top" format="reference|dimension" />
+    </declare-styleable>
+
     <declare-styleable name="OutsideLineChart">
         <attr name="lc_step" format="dimension" />
     </declare-styleable>
